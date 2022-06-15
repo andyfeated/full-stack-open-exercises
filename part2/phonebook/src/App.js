@@ -1,5 +1,5 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
+import personsServices from './services/persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
@@ -11,10 +11,10 @@ const App = () => {
   const [filter, setFilter] = useState("")
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then(res => {
-        setPersons(res.data)
+    personsServices
+      .getAllPerson()
+      .then(persons => {
+        setPersons(persons)
       })
   }, [])
 
@@ -22,16 +22,34 @@ const App = () => {
     event.preventDefault()
 
     const duplicate = persons.find(person => person.name === newName)
+    console.log(duplicate)
+    const newContact = {
+      name: newName,
+      number: newNumber,
+    }
 
     if(!duplicate){
-      setPersons(persons.concat({
-        name: newName,
-        number: newNumber
-      }))
+
+      personsServices
+        .createPerson(newContact)
+        .then(returnedContact => {
+          setPersons(persons.concat(returnedContact))
+          setNewName("")
+          setNewNumber("")
+        })
     }else{
-      window.alert(`${newName} is already added to the phonebook`)
+      const confirm = window.confirm(`${newName} is already added to the phonebook, replace old number with a new one?`)
+      
+      if(confirm){
+        personsServices
+          .updatePerson(duplicate.id, newContact)
+          .then(res => {
+            setPersons(persons.map(person => person.id === duplicate.id ? res : person))
+            setNewName("")
+            setNewNumber("")
+          })
+      }
     }
-    
   }
 
   const handleSearch = (event) =>{
@@ -41,6 +59,17 @@ const App = () => {
     )
 
     setPersons(results)
+  }
+
+  const handleDeletePerson = (id, name) => {
+    const confirm = window.confirm(`Delete ${name}?`)
+    if(confirm){
+      personsServices
+      .deletePerson(id)
+      .then(res => {
+        setPersons(persons.filter(person => person.id !== id))
+      })
+    }
   }
 
   const handleNameChange = (event) => {
@@ -57,12 +86,14 @@ const App = () => {
         <Filter onChange={handleSearch} value={filter} />
       <h2>add a new</h2>
         <PersonForm 
-          onSubmit={handleAddContact} 
+          nameValue={newName}
+          numberValue={newNumber}
+          onSubmit={handleAddContact}
           onNameChange={handleNameChange} 
           onNumberChange={handleNumberChange} 
         />
       <h2>Numbers</h2>
-      <Persons persons={persons} />
+      <Persons handleDeletePerson={handleDeletePerson} persons={persons} />
     </div>
   )
 }
