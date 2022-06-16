@@ -3,12 +3,14 @@ import personsServices from './services/persons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState("")
+  const [message, setMessage] = useState({})
 
   useEffect(() => {
     personsServices
@@ -34,6 +36,11 @@ const App = () => {
         .createPerson(newContact)
         .then(returnedContact => {
           setPersons(persons.concat(returnedContact))
+          setMessage({...message, text: `Added ${returnedContact.name}`, status: 'success'})
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          
           setNewName("")
           setNewNumber("")
         })
@@ -45,8 +52,18 @@ const App = () => {
           .updatePerson(duplicate.id, newContact)
           .then(res => {
             setPersons(persons.map(person => person.id === duplicate.id ? res : person))
+            setMessage({...message, text: `Updated ${res.name}'s number to ${res.number}`, status: 'success'})
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+
             setNewName("")
             setNewNumber("")
+          }).catch(err => {
+            setMessage({...message, text: `Information of ${duplicate.name} has already been removed from server`, status: 'error'})
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
           })
       }
     }
@@ -83,6 +100,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+        <Notification text={message?.text} />
         <Filter onChange={handleSearch} value={filter} />
       <h2>add a new</h2>
         <PersonForm 
