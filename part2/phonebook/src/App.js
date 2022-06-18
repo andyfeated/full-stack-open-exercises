@@ -24,7 +24,6 @@ const App = () => {
     event.preventDefault()
 
     const duplicate = persons.find(person => person.name === newName)
-    console.log(duplicate)
     const newContact = {
       name: newName,
       number: newNumber,
@@ -100,7 +99,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-        <Notification text={message?.text} />
+        <Notification text={message?.text} status={message?.status} />
         <Filter onChange={handleSearch} value={filter} />
       <h2>add a new</h2>
         <PersonForm 
