@@ -30,18 +30,24 @@ const App = () => {
     }
 
     if(!duplicate){
-
+      console.log('works')
       personsServices
         .createPerson(newContact)
         .then(returnedContact => {
           setPersons(persons.concat(returnedContact))
-          setMessage({...message, text: `Added ${returnedContact.name}`, status: 'success'})
+          setMessage({ text: `Added ${returnedContact.name}`, status: 'success'})
           setTimeout(() => {
             setMessage(null)
           }, 5000)
           
           setNewName("")
           setNewNumber("")
+        })
+        .catch(err => {
+          setMessage({ text: err.response.data.error })
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
         })
     }else{
       const confirm = window.confirm(`${newName} is already added to the phonebook, replace old number with a new one?`)
@@ -59,10 +65,10 @@ const App = () => {
             setNewName("")
             setNewNumber("")
           }).catch(err => {
-            setMessage({...message, text: `Information of ${duplicate.name} has already been removed from server`, status: 'error'})
+            setMessage({ text: err.response.data.error })
             setTimeout(() => {
               setMessage(null)
-            }, 5000)
+            }, 5000)            
           })
       }
     }
